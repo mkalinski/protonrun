@@ -1,0 +1,206 @@
+#!/usr/bin/env bash
+# Copyright (C) 2019,2020  Michał Kaliński
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+declare -r ZERO_ARG="$0"
+declare -r ROOT_DIR="${PROTONRUN_STEAM_ROOT:-$HOME/.local/share/Steam}"
+declare -r STEAMAPPS_DIR="$ROOT_DIR/steamapps"
+declare -r COMPATDATA_DIR="$STEAMAPPS_DIR/compatdata"
+
+usage() {
+	echo 'Usage:'
+	echo "  $ZERO_ARG [-s|--show] COMMAND [ARGUMENT...]"
+	echo "  $ZERO_ARG -s|--show"
+	echo "  $ZERO_ARG -l|--list"
+	echo "  $ZERO_ARG -h|--help"
+	echo
+	echo 'Export WINE environment variables for a Steam Proton prefix'
+	echo 'and run COMMAND [ARGUMENT...]'
+	echo
+	echo 'OPTIONS'
+	echo '  -l, --list  print all detected steam apps, as `APP_ID "APP_NAME"`,'
+	echo '              and exit'
+	echo '  -s, --show  print exported variables, as `NAME=VALUE`,'
+	echo '              before executing COMMAND [ARGUMENT...], if given'
+	echo '  -h, --help  print this message and exit'
+	echo
+	echo 'ENVIRONMENT VARIABLES'
+	echo '  PROTONRUN_STEAM_ROOT  root dir of Steam installation,'
+	echo '                        defaults to `$HOME/.local/share/Steam`'
+	echo '  PROTONRUN_APP_ID      ID of Steam app whose prefix to use,'
+	echo '                        if not set then a prompt will be shown'
+	echo '                        of all Steam apps'
+}
+
+echo_err() {
+	echo "$ZERO_ARG:" ERROR: "$@" >&2
+}
+
+ensure_dir() {
+	declare -r checked_dir="$1"
+
+	if [[ ! -d $checked_dir ]]; then
+		echo_err "$checked_dir is not a directory"
+		exit 1
+	fi
+}
+
+list_apps() {
+	find_apps | extract_app_names
+}
+
+find_apps() {
+	declare app_dir slashless_app_dir
+
+	for app_dir in "$COMPATDATA_DIR"/*/; do
+		if [[ ! -d $app_dir ]]; then
+			continue
+		fi
+
+		slashless_app_dir="${app_dir%/}"
+		echo "${slashless_app_dir##*/}"
+	done
+}
+
+extract_app_names() {
+	declare app_id first_field second_field app_name
+
+	while read -r app_id; do
+		app_name=
+
+		while read -r first_field second_field; do
+			if [[ $first_field == '"name"' ]]; then
+				app_name="$second_field"
+				break
+			fi
+		done < "$STEAMAPPS_DIR/appmanifest_$app_id.acf"
+
+		if [[ -z $app_name ]]; then
+			app_name="$app_id"
+		fi
+
+		echo "$app_id" "$app_name"
+	done
+}
+
+trim_nameless_apps() {
+	declare app_id app_name
+
+	while read -r app_id app_name; do
+		if [[ $app_id == $app_name ]]; then
+			echo "$app_id"
+		else
+			echo "$app_id" "$app_name"
+		fi
+	done
+}
+
+make_app_names_to_ids_map() {
+	declare -gA app_names_to_ids_map
+	declare app_id app_name
+
+	while read -r app_id app_name; do
+		app_names_to_ids_map[$app_name]="$app_id"
+	done
+}
+
+read_version_file() {
+	declare line
+	read line
+	echo "${line%-*}"
+}
+
+
+if [[ $# -eq 0 ]]; then
+	echo_err 'An argument is required'
+	usage
+	exit 2
+fi
+
+ensure_dir "$COMPATDATA_DIR"
+
+declare show_envs
+
+case "$1" in
+	(-h|--help)
+		usage
+		exit 0
+		;;
+	(-l|--list)
+		list_apps | trim_nameless_apps
+		exit 0
+		;;
+	(-s|--show)
+		show_envs=1
+		shift 1
+		;;
+	(-*)
+		echo_err "Unknown option: $1"
+		usage
+		exit 2
+		;;
+esac
+
+declare selected_app_id
+
+if [[ -z $PROTONRUN_APP_ID ]]; then
+	make_app_names_to_ids_map <<< "$(list_apps)"
+
+	declare selected_app_name
+
+	select selected_app_name in "${!app_names_to_ids_map[@]}"; do
+		if [[ -n $selected_app_name ]]; then
+			selected_app_id="${app_names_to_ids_map[$selected_app_name]}"
+			break
+		fi
+	done
+
+	if [[ -z $selected_app_id ]]; then
+		# The user must have exited
+		exit 0
+	fi
+else
+	selected_app_id="$PROTONRUN_APP_ID"
+fi
+
+declare -r app_proton_dir="$ROOT_DIR/steamapps/compatdata/$selected_app_id"
+ensure_dir "$app_proton_dir"
+
+declare -r proton_version_file="$app_proton_dir/version"
+declare proton_version
+
+if ! proton_version="$(read_version_file < "$proton_version_file")"; then
+	echo_err "Could not read proton version from: $proton_version_file"
+	exit 1
+fi
+
+declare -r wine_dist="$STEAMAPPS_DIR/common/Proton $proton_version/dist"
+ensure_dir "$wine_dist"
+
+declare -x WINEPREFIX="$app_proton_dir/pfx"
+declare -x WINESERVER="$wine_dist/bin/wineserver"
+declare -x WINELOADER="$wine_dist/bin/wine"
+declare -x WINEDLLPATH="$wine_dist/lib/wine:$wine_dist/lib64/wine"
+declare -x PATH="$wine_dist/bin:$PATH"
+
+if [[ -n $show_envs ]]; then
+	echo "WINEPREFIX=$WINEPREFIX"
+	echo "WINESERVER=$WINESERVER"
+	echo "WINELOADER=$WINELOADER"
+	echo "WINEDLLPATH=$WINEDLLPATH"
+	echo "PATH=$PATH"
+fi
+
+exec "$@"
