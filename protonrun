@@ -80,13 +80,21 @@ list_apps() {
 	done
 }
 
+sorted_apps() {
+	if command -v sort > /dev/null; then
+		echo "$(list_apps | sort -k 2)"
+	else
+		echo "$(list_apps)"
+	fi
+}
+
 select_protonrun_app_id() {
 	declare line selected_app
 	declare proton_apps=()
 
 	while read -r line; do
 		proton_apps+=("$line")
-	done <<< "$(list_apps)"
+	done <<< "$(sorted_apps)"
 
 	select selected_app in "${proton_apps[@]}"; do
 		if [[ -n $selected_app ]]; then
@@ -119,7 +127,7 @@ case "$1" in
 		exit 0
 		;;
 	(-l|--list)
-		list_apps
+		sorted_apps
 		exit 0
 		;;
 	(-s|--show)

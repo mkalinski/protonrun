@@ -33,6 +33,7 @@ teardown() {
 	run ./protonrun --list
 	[[ $status -eq 0 ]]
 	[[ ${#lines[@]} -eq 2 ]]
-	[[ ${lines[0]} == "$APP_1_ID \"$APP_1_NAME\"" ]]
-	[[ ${lines[1]} == $APP_2_ID ]]
+	# The app with unknown name is always sorted first
+	[[ ${lines[0]} == $APP_2_ID ]]
+	[[ ${lines[1]} == "$APP_1_ID \"$APP_1_NAME\"" ]]
 }
