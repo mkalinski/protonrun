@@ -14,9 +14,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+declare PROTONRUN_STEAM_ROOT PROTONRUN_APP_ID
+: ${PROTONRUN_STEAM_ROOT:=$HOME/.local/share/Steam}
 declare -r ZERO_ARG="$0"
-declare -r ROOT_DIR="${PROTONRUN_STEAM_ROOT:-$HOME/.local/share/Steam}"
-declare -r STEAMAPPS_DIR="$ROOT_DIR/steamapps"
+declare -r STEAMAPPS_DIR="$PROTONRUN_STEAM_ROOT/steamapps"
 declare -r COMPATDATA_DIR="$STEAMAPPS_DIR/compatdata"
 
 usage() {
@@ -58,61 +59,40 @@ ensure_dir() {
 }
 
 list_apps() {
-	find_apps | extract_app_names
-}
+	declare app field_1 field_2
 
-find_apps() {
-	declare app_dir slashless_app_dir
-
-	for app_dir in "$COMPATDATA_DIR"/*/; do
-		if [[ ! -d $app_dir ]]; then
+	for app in "$COMPATDATA_DIR"/*/; do
+		if [[ ! -d $app ]]; then
 			continue
 		fi
 
-		slashless_app_dir="${app_dir%/}"
-		echo "${slashless_app_dir##*/}"
-	done
-}
+		app="${app%/}"
+		app="${app##*/}"
 
-extract_app_names() {
-	declare app_id first_field second_field app_name
-
-	while read -r app_id; do
-		app_name=
-
-		while read -r first_field second_field; do
-			if [[ $first_field == '"name"' ]]; then
-				app_name="$second_field"
+		while read -r field_1 field_2; do
+			if [[ $field_1 == '"name"' ]]; then
+				app+=" $field_2"
 				break
 			fi
-		done < "$STEAMAPPS_DIR/appmanifest_$app_id.acf"
+		done < "$STEAMAPPS_DIR/appmanifest_$app.acf"
 
-		if [[ -z $app_name ]]; then
-			app_name="$app_id"
-		fi
-
-		echo "$app_id" "$app_name"
+		echo "$app"
 	done
 }
 
-trim_nameless_apps() {
-	declare app_id app_name
+select_protonrun_app_id() {
+	declare line selected_app
+	declare proton_apps=()
 
-	while read -r app_id app_name; do
-		if [[ $app_id == $app_name ]]; then
-			echo "$app_id"
-		else
-			echo "$app_id" "$app_name"
+	while read -r line; do
+		proton_apps+=("$line")
+	done <<< "$(list_apps)"
+
+	select selected_app in "${proton_apps[@]}"; do
+		if [[ -n $selected_app ]]; then
+			PROTONRUN_APP_ID="${selected_app%% *}"
+			break
 		fi
-	done
-}
-
-make_app_names_to_ids_map() {
-	declare -gA app_names_to_ids_map
-	declare app_id app_name
-
-	while read -r app_id app_name; do
-		app_names_to_ids_map[$app_name]="$app_id"
 	done
 }
 
@@ -131,7 +111,7 @@ fi
 
 ensure_dir "$COMPATDATA_DIR"
 
-declare show_envs
+declare -i show_envs=0
 
 case "$1" in
 	(-h|--help)
@@ -139,7 +119,7 @@ case "$1" in
 		exit 0
 		;;
 	(-l|--list)
-		list_apps | trim_nameless_apps
+		list_apps
 		exit 0
 		;;
 	(-s|--show)
@@ -153,29 +133,16 @@ case "$1" in
 		;;
 esac
 
-declare selected_app_id
-
 if [[ -z $PROTONRUN_APP_ID ]]; then
-	make_app_names_to_ids_map <<< "$(list_apps)"
+	select_protonrun_app_id
 
-	declare selected_app_name
-
-	select selected_app_name in "${!app_names_to_ids_map[@]}"; do
-		if [[ -n $selected_app_name ]]; then
-			selected_app_id="${app_names_to_ids_map[$selected_app_name]}"
-			break
-		fi
-	done
-
-	if [[ -z $selected_app_id ]]; then
-		# The user must have exited
+	if [[ -z $PROTONRUN_APP_ID ]]; then
+		# User must have cancelled
 		exit 0
 	fi
-else
-	selected_app_id="$PROTONRUN_APP_ID"
 fi
 
-declare -r app_proton_dir="$ROOT_DIR/steamapps/compatdata/$selected_app_id"
+declare -r app_proton_dir="$PROTONRUN_STEAM_ROOT/steamapps/compatdata/$PROTONRUN_APP_ID"
 ensure_dir "$app_proton_dir"
 
 declare -r proton_version_file="$app_proton_dir/version"
@@ -195,7 +162,7 @@ declare -x WINELOADER="$wine_dist/bin/wine"
 declare -x WINEDLLPATH="$wine_dist/lib/wine:$wine_dist/lib64/wine"
 declare -x PATH="$wine_dist/bin:$PATH"
 
-if [[ -n $show_envs ]]; then
+if (( show_envs )); then
 	echo "WINEPREFIX=$WINEPREFIX"
 	echo "WINESERVER=$WINESERVER"
 	echo "WINELOADER=$WINELOADER"

@@ -15,8 +15,8 @@ teardown() {
 @test 'selects app with prompt when PROTONRUN_APP_ID not set' {
 	protonrun_with_select 2 env
 	[[ $status -eq 0 ]]
-	[[ "$(remove_cr <<< ${lines[0]})" == "1) \"$APP_1_NAME\"" ]]
-	[[ "$(remove_cr <<< ${lines[1]})" == "2) \"$APP_2_NAME\"" ]]
+	[[ "$(remove_cr <<< ${lines[0]})" == "1) $APP_1_ID \"$APP_1_NAME\"" ]]
+	[[ "$(remove_cr <<< ${lines[1]})" == "2) $APP_2_ID \"$APP_2_NAME\"" ]]
 	remove_cr <<< "$output" |
 		verify_env "$APP_2_ID" "$PROTON_VERSION"
 }
