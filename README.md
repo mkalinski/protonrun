@@ -7,7 +7,8 @@ a selected Steam app.
 
 The following variables are set: `WINEPREFIX`, `WINESERVER`, `WINELOADER`,
 `WINEDLLPATH`, `PATH` (the `bin` directory of Proton distribution is
-prepended).
+prepended), `PROTON` (the base directory of Proton distribution used by the
+Steam app).
 
 ## Usage
 

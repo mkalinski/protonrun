@@ -10,14 +10,17 @@ verify_env() {
 			envs[$key]="$value"
 		fi
 	done
-	declare -r wine_dist="$PROTONRUN_STEAM_ROOT/steamapps/common/Proton $proton_ver/dist"
+
+	declare -r proton="$PROTONRUN_STEAM_ROOT/steamapps/common/Proton $proton_ver"
+	declare -r proton_dist="$proton/dist"
 
 	[[
 		${envs[WINEPREFIX]} \
 		== "$PROTONRUN_STEAM_ROOT/steamapps/compatdata/$app_id/pfx" \
-		&& ${envs[PATH]} == "$wine_dist/bin":* \
-		&& ${envs[WINESERVER]} == $wine_dist/bin/wineserver \
-		&& ${envs[WINELOADER]} == $wine_dist/bin/wine \
-		&& ${envs[WINEDLLPATH]} == $wine_dist/lib/wine:$wine_dist/lib64/wine \
+		&& ${envs[PROTON]} == "$proton" \
+		&& ${envs[PATH]} == "$proton_dist/bin":* \
+		&& ${envs[WINESERVER]} == $proton_dist/bin/wineserver \
+		&& ${envs[WINELOADER]} == $proton_dist/bin/wine \
+		&& ${envs[WINEDLLPATH]} == $proton_dist/lib/wine:$proton_dist/lib64/wine \
 	]]
 }

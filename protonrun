@@ -161,14 +161,15 @@ if ! proton_version="$(read_version_file < "$proton_version_file")"; then
 	exit 1
 fi
 
-declare -r wine_dist="$STEAMAPPS_DIR/common/Proton $proton_version/dist"
-ensure_dir "$wine_dist"
+declare -x PROTON="$STEAMAPPS_DIR/common/Proton $proton_version"
+declare -r proton_dist="$PROTON/dist"
+ensure_dir "$proton_dist"
 
 declare -x WINEPREFIX="$app_proton_dir/pfx"
-declare -x WINESERVER="$wine_dist/bin/wineserver"
-declare -x WINELOADER="$wine_dist/bin/wine"
-declare -x WINEDLLPATH="$wine_dist/lib/wine:$wine_dist/lib64/wine"
-declare -x PATH="$wine_dist/bin:$PATH"
+declare -x WINESERVER="$proton_dist/bin/wineserver"
+declare -x WINELOADER="$proton_dist/bin/wine"
+declare -x WINEDLLPATH="$proton_dist/lib/wine:$proton_dist/lib64/wine"
+declare -x PATH="$proton_dist/bin:$PATH"
 
 if (( show_envs )); then
 	echo "WINEPREFIX=$WINEPREFIX"
@@ -176,6 +177,7 @@ if (( show_envs )); then
 	echo "WINELOADER=$WINELOADER"
 	echo "WINEDLLPATH=$WINEDLLPATH"
 	echo "PATH=$PATH"
+	echo "PROTON=$PROTON"
 fi
 
 exec "$@"
