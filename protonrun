@@ -94,7 +94,7 @@ list_apps() {
 
 sorted_apps() {
 	declare list
-	list="$(list_apps)" || exit
+	list="$(list_apps)" || return
 
 	if command -v sort > /dev/null; then
 		sort -k 2 <<< "$list"
@@ -102,24 +102,31 @@ sorted_apps() {
 }
 
 select_protonrun_app_id() {
-	declare line selected_app
-	declare proton_apps=()
-
-	while read -r line; do
-		proton_apps+=("$line")
-	done <<< "$(sorted_apps)"
+	declare line selected_app proton_apps
+	readarray -t proton_apps <<< "$(sorted_apps)" || return
 
 	select selected_app in "${proton_apps[@]}"; do
 		if [[ -n $selected_app ]]; then
 			PROTONRUN_APP_ID="${selected_app%% *}"
-			break
+			return
 		fi
 	done
+
+	# If app not selected, then abort.
+	return 1
 }
 
-read_version_file() {
+get_proton_version() {
+	declare -r proton_dir="$1"
+	declare -r version_path="$proton_dir/version"
+
 	declare line
-	read line
+	read -r line < "$version_path"
+
+	if [[ -z $line ]]; then
+		die "Could not read proton version from: $version_path"
+	fi
+
 	echo "${line%-*}"
 }
 
@@ -128,16 +135,16 @@ if [[ $# -eq 0 ]]; then
 	die_on_bad_args 'An argument is required'
 fi
 
-declare -i show_envs=0
+declare show_envs
 
 case "$1" in
 	(-h|--help)
 		usage
-		exit 0
+		exit
 		;;
 	(-l|--list)
 		sorted_apps
-		exit 0
+		exit
 		;;
 	(-s|--show)
 		show_envs=1
@@ -160,12 +167,8 @@ fi
 declare -r app_proton_dir="$PROTONRUN_STEAM_ROOT/steamapps/compatdata/$PROTONRUN_APP_ID"
 ensure_dir "$app_proton_dir"
 
-declare -r proton_version_file="$app_proton_dir/version"
 declare proton_version
-
-if ! proton_version="$(read_version_file < "$proton_version_file")"; then
-	die "Could not read proton version from: $proton_version_file"
-fi
+proton_version="$(get_proton_version "$app_proton_dir")" || exit
 
 declare -x PROTON="$steamapps_dir/common/Proton $proton_version"
 declare -r proton_dist="$PROTON/dist"
@@ -177,7 +180,7 @@ declare -x WINELOADER="$proton_dist/bin/wine"
 declare -x WINEDLLPATH="$proton_dist/lib/wine:$proton_dist/lib64/wine"
 declare -x PATH="$proton_dist/bin:$PATH"
 
-if (( show_envs )); then
+if [[ -n $show_envs ]]; then
 	echo "WINEPREFIX=$WINEPREFIX"
 	echo "WINESERVER=$WINESERVER"
 	echo "WINELOADER=$WINELOADER"
