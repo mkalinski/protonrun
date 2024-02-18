@@ -50,12 +50,22 @@ echo_err() {
 	echo "$command_arg:" ERROR: "$@" >&2
 }
 
+die() {
+	echo_err "$1"
+	exit "${2:-1}"
+}
+
+die_on_bad_args() {
+	echo_err "$1"
+	usage
+	exit 2
+}
+
 ensure_dir() {
 	declare -r checked_dir="$1"
 
 	if [[ ! -d $checked_dir ]]; then
-		echo_err "$checked_dir is not a directory"
-		exit 1
+		die "$checked_dir is not a directory"
 	fi
 }
 
@@ -115,9 +125,7 @@ read_version_file() {
 
 
 if [[ $# -eq 0 ]]; then
-	echo_err 'An argument is required'
-	usage
-	exit 2
+	die_on_bad_args 'An argument is required'
 fi
 
 declare -i show_envs=0
@@ -136,9 +144,7 @@ case "$1" in
 		shift 1
 		;;
 	(-*)
-		echo_err "Unknown option: $1"
-		usage
-		exit 2
+		die_on_bad_args "Unknown option: $1"
 		;;
 esac
 
@@ -158,8 +164,7 @@ declare -r proton_version_file="$app_proton_dir/version"
 declare proton_version
 
 if ! proton_version="$(read_version_file < "$proton_version_file")"; then
-	echo_err "Could not read proton version from: $proton_version_file"
-	exit 1
+	die "Could not read proton version from: $proton_version_file"
 fi
 
 declare -x PROTON="$steamapps_dir/common/Proton $proton_version"
