@@ -16,16 +16,17 @@
 
 declare PROTONRUN_STEAM_ROOT PROTONRUN_APP_ID
 : ${PROTONRUN_STEAM_ROOT:=$HOME/.local/share/Steam}
-declare -r ZERO_ARG="$0"
-declare -r STEAMAPPS_DIR="$PROTONRUN_STEAM_ROOT/steamapps"
-declare -r COMPATDATA_DIR="$STEAMAPPS_DIR/compatdata"
+
+declare -r command_arg="$0"
+declare -r steamapps_dir="$PROTONRUN_STEAM_ROOT/steamapps"
+declare -r compatdata_dir="$steamapps_dir/compatdata"
 
 usage() {
 	echo 'Usage:'
-	echo "  $ZERO_ARG [-s|--show] COMMAND [ARGUMENT...]"
-	echo "  $ZERO_ARG -s|--show"
-	echo "  $ZERO_ARG -l|--list"
-	echo "  $ZERO_ARG -h|--help"
+	echo "  $command_arg [-s|--show] COMMAND [ARGUMENT...]"
+	echo "  $command_arg -s|--show"
+	echo "  $command_arg -l|--list"
+	echo "  $command_arg -h|--help"
 	echo
 	echo 'Export WINE environment variables for a Steam Proton prefix'
 	echo 'and run COMMAND [ARGUMENT...]'
@@ -46,7 +47,7 @@ usage() {
 }
 
 echo_err() {
-	echo "$ZERO_ARG:" ERROR: "$@" >&2
+	echo "$command_arg:" ERROR: "$@" >&2
 }
 
 ensure_dir() {
@@ -59,9 +60,10 @@ ensure_dir() {
 }
 
 list_apps() {
+	ensure_dir "$compatdata_dir"
 	declare app field_1 field_2
 
-	for app in "$COMPATDATA_DIR"/*/; do
+	for app in "$compatdata_dir"/*/; do
 		if [[ ! -d $app ]]; then
 			continue
 		fi
@@ -74,17 +76,18 @@ list_apps() {
 				app+=" $field_2"
 				break
 			fi
-		done < "$STEAMAPPS_DIR/appmanifest_$app.acf"
+		done < "$steamapps_dir/appmanifest_$app.acf"
 
 		echo "$app"
 	done
 }
 
 sorted_apps() {
+	declare list
+	list="$(list_apps)" || exit
+
 	if command -v sort > /dev/null; then
-		echo "$(list_apps | sort -k 2)"
-	else
-		echo "$(list_apps)"
+		sort -k 2 <<< "$list"
 	fi
 }
 
@@ -116,8 +119,6 @@ if [[ $# -eq 0 ]]; then
 	usage
 	exit 2
 fi
-
-ensure_dir "$COMPATDATA_DIR"
 
 declare -i show_envs=0
 
@@ -161,7 +162,7 @@ if ! proton_version="$(read_version_file < "$proton_version_file")"; then
 	exit 1
 fi
 
-declare -x PROTON="$STEAMAPPS_DIR/common/Proton $proton_version"
+declare -x PROTON="$steamapps_dir/common/Proton $proton_version"
 declare -r proton_dist="$PROTON/dist"
 ensure_dir "$proton_dist"
 
