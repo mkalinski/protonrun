@@ -1,4 +1,5 @@
 load ../../constants/error_msg_prefix.bash
+load ../../constants/protonrun_exec.bash
 load ../../fixtures/mock_protonrun_steam_root.bash
 
 assert_error_with_usage() {
@@ -12,11 +13,11 @@ setup() {
 }
 
 @test 'exits with error when no arguments are given' {
-	run ./protonrun
+	run "$protonrun_exec"
 	assert_error_with_usage 'An argument is required'
 }
 
 @test 'exits with error when unknown option is given' {
-	run ./protonrun -0
+	run "$protonrun_exec" -0
 	assert_error_with_usage 'Unknown option: -0'
 }

@@ -1,5 +1,6 @@
 load ../../constants/app_1.bash
 load ../../constants/error_msg_prefix.bash
+load ../../constants/protonrun_exec.bash
 load ../../fixtures/mock_protonrun_steam_apps.bash
 
 setup() {
@@ -52,33 +53,33 @@ run_fails_missing_proton_dir() {
 }
 
 @test 'command fails without running when app dir is missing' {
-	run_fails_missing_app_dir ./protonrun echo foo
+	run_fails_missing_app_dir "$protonrun_exec" echo foo
 }
 
 @test 'command fails without running when proton version file cannot be read' {
-	run_fails_missing_version_file ./protonrun echo foo
+	run_fails_missing_version_file "$protonrun_exec" echo foo
 }
 
 @test 'command fails without running when app prefix is missing' {
-	run_fails_missing_prefix_dir ./protonrun echo foo
+	run_fails_missing_prefix_dir "$protonrun_exec" echo foo
 }
 
 @test 'command fails without running when proton dir is missing' {
-	run_fails_missing_proton_dir ./protonrun echo foo
+	run_fails_missing_proton_dir "$protonrun_exec" echo foo
 }
 
 @test '--show fails if app dir is missing' {
-	run_fails_missing_app_dir ./protonrun --show
+	run_fails_missing_app_dir "$protonrun_exec" --show
 }
 
 @test '--show fails when proton version file cannot be read' {
-	run_fails_missing_version_file ./protonrun --show
+	run_fails_missing_version_file "$protonrun_exec" --show
 }
 
 @test '--show fails when app prefix is missing' {
-	run_fails_missing_prefix_dir ./protonrun --show
+	run_fails_missing_prefix_dir "$protonrun_exec" --show
 }
 
 @test '--show fails when proton dir is missing' {
-	run_fails_missing_proton_dir ./protonrun --show
+	run_fails_missing_proton_dir "$protonrun_exec" --show
 }

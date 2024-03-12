@@ -1,1 +1,2 @@
-declare -g error_msg_prefix='./protonrun: ERROR:'
+load ../../constants/protonrun_exec.bash
+declare -g error_msg_prefix="$protonrun_exec: ERROR:"
