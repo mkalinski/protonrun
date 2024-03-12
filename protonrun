@@ -175,6 +175,7 @@ declare -r proton_dist="$PROTON/dist"
 ensure_dir "$proton_dist"
 
 declare -x WINEPREFIX="$app_proton_dir/pfx"
+ensure_dir "$WINEPREFIX"
 declare -x WINESERVER="$proton_dist/bin/wineserver"
 declare -x WINELOADER="$proton_dist/bin/wine"
 declare -x WINEDLLPATH="$proton_dist/lib/wine:$proton_dist/lib64/wine"

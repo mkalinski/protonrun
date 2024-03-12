@@ -1,13 +1,8 @@
-load fixture_protonrun
-load fixture_mock_steam
+load ../../fixtures/mock_protonrun_steam_apps.bash
 
 setup() {
-	mock_steam_root <<-'EOF'
+	mock_protonrun_steam_apps <<-EOF
 	EOF
-}
-
-teardown() {
-	clear_steam_root_mock
 }
 
 @test '--list outputs nothing when there are no apps' {

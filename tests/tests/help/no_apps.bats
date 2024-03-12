@@ -1,4 +1,8 @@
-load fixture_protonrun
+load ../../fixtures/mock_protonrun_steam_root.bash
+
+setup() {
+	mock_protonrun_steam_root
+}
 
 @test '--help option prints usage and does nothing' {
 	run ./protonrun --help echo foo
