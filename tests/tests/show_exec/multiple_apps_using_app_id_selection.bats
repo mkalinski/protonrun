@@ -1,6 +1,6 @@
 load ../../constants/app_1.bash
 load ../../constants/app_2.bash
-load ../../constants/protonrun_exec.bash
+load ../../fixtures/protonrun_exec.bash
 load ../../fixtures/assert_env_printout
 load ../../fixtures/mock_protonrun_steam_apps.bash
 

@@ -1,5 +1,5 @@
-load ../../constants/error_msg_prefix.bash
-load ../../constants/protonrun_exec.bash
+load ../../fixtures/error_msg_prefix.bash
+load ../../fixtures/protonrun_exec.bash
 load ../../fixtures/mock_protonrun_steam_root.bash
 
 setup() {

@@ -1,4 +1,4 @@
-load ../../constants/protonrun_exec.bash
+load ../../fixtures/protonrun_exec.bash
 load ../../fixtures/mock_protonrun_steam_apps.bash
 
 setup() {
