@@ -5,4 +5,4 @@ if [[ ${BASH_SOURCE[0]} != */* ]]; then
 fi
 
 declare -r here="${BASH_SOURCE[0]%/*}"
-exec "$here"/tests/bats/core/bin/bats "$@" -r "$here"/tests/tests/
+exec "$here/tests/bats/core/bin/bats" "$@" -r "$here/tests/cases/"
