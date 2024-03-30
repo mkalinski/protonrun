@@ -12,7 +12,7 @@ setup() {
 	EOF
 }
 
-@test 'selects app using prompt when PROTONRUN_APP_ID not set' {
+exec_selects_app_using_prompt_when_PROTONRUN_APP_ID_not_set() { #@test
 	PS3= run "$protonrun_exec" env <<< 2
 
 	[[ $status -eq 0 ]]

@@ -10,7 +10,7 @@ setup() {
 	EOF
 }
 
-@test '--list prints available apps and exits' {
+option_list_prints_available_apps_and_exits() { #@test
 	run "$protonrun_exec" --list echo foo
 	[[ $status -eq 0 ]]
 	[[ ${#lines[@]} -eq 2 ]]
@@ -18,7 +18,7 @@ setup() {
 	[[ ${lines[1]} == "$app_2_id \"$app_2_name\"" ]]
 }
 
-@test '--list does not print app name if manifest file missing' {
+option_list_does_not_print_app_name_if_manifest_file_missing() { #@test
 	rm "$PROTONRUN_STEAM_ROOT/steamapps/appmanifest_$app_1_id.acf"
 	run "$protonrun_exec" --list
 	[[ $status -eq 0 ]]
@@ -28,7 +28,7 @@ setup() {
 	[[ ${lines[2]} == "$app_2_id \"$app_2_name\"" ]]
 }
 
-@test '--list does not print app name if not found in manifest file' {
+option_list_does_not_print_app_name_if_not_found_in_manifest_file() { #@test
 	echo '"foo" "bar"' > "$PROTONRUN_STEAM_ROOT/steamapps/appmanifest_$app_2_id.acf"
 	run "$protonrun_exec" --list
 	[[ $status -eq 0 ]]

@@ -5,7 +5,7 @@ setup() {
 	mock_protonrun_steam_root
 }
 
-@test '--help option prints usage and does nothing' {
+option_help_prints_usage_and_does_nothing() { #@test
 	run "$protonrun_exec" --help echo foo
 	[[ $status -eq 0 ]]
 	[[ ${lines[0]} == Usage: ]]

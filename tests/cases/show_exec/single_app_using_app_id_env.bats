@@ -11,20 +11,20 @@ setup() {
 	declare -gx PROTONRUN_APP_ID="$app_1_id"
 }
 
-@test 'exits with error code from command being run' {
+exec_exits_with_error_code_of_command() { #@test
 	run "$protonrun_exec" sh -c 'exit 100'
 
 	[[ $status -eq 100 ]]
 }
 
-@test 'sets up env vars and PATH for the app with PROTONRUN_APP_ID' {
+exec_sets_up_env_vars_and_PATH_for_the_app_with_PROTONRUN_APP_ID() { #@test
 	run "$protonrun_exec" env
 
 	[[ $status -eq 0 ]]
 	assert_env_printout "$app_1_id" "$app_1_proton_version" <<< "$output"
 }
 
-@test 'with --show prints exported values before execution' {
+exec_with_option_show_prints_exported_values_before_command() { #@test
 	run "$protonrun_exec" --show echo foo
 
 	[[ $status -eq 0 ]]
@@ -32,7 +32,7 @@ setup() {
 	assert_env_printout "$app_1_id" "$app_1_proton_version" <<< "$output"
 }
 
-@test '--show prints exported values when no command' {
+exec_show_prints_exported_values_when_no_command() { #@test
 	run "$protonrun_exec" --show
 
 	[[ $status -eq 0 ]]

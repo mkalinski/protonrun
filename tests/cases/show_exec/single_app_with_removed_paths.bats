@@ -52,34 +52,34 @@ run_fails_missing_proton_dir() {
 	[[ $output == "$error_msg_prefix $removed/dist is not a directory" ]]
 }
 
-@test 'command fails without running when app dir is missing' {
+exec_fails_without_running_when_app_dir_is_missing() { #@test
 	run_fails_missing_app_dir "$protonrun_exec" echo foo
 }
 
-@test 'command fails without running when proton version file cannot be read' {
+exec_fails_without_running_when_proton_version_file_cannot_be_read() { #@test
 	run_fails_missing_version_file "$protonrun_exec" echo foo
 }
 
-@test 'command fails without running when app prefix is missing' {
+exec_fails_without_running_when_app_prefix_is_missing() { #@test
 	run_fails_missing_prefix_dir "$protonrun_exec" echo foo
 }
 
-@test 'command fails without running when proton dir is missing' {
+exec_fails_without_running_when_proton_dir_is_missing() { #@test
 	run_fails_missing_proton_dir "$protonrun_exec" echo foo
 }
 
-@test '--show fails if app dir is missing' {
+option_show_fails_if_app_dir_is_missing() { #@test
 	run_fails_missing_app_dir "$protonrun_exec" --show
 }
 
-@test '--show fails when proton version file cannot be read' {
+option_show_fails_when_proton_version_file_cannot_be_read() { #@test
 	run_fails_missing_version_file "$protonrun_exec" --show
 }
 
-@test '--show fails when app prefix is missing' {
+option_show_fails_when_app_prefix_is_missing() { #@test
 	run_fails_missing_prefix_dir "$protonrun_exec" --show
 }
 
-@test '--show fails when proton dir is missing' {
+option_show_fails_when_proton_dir_is_missing() { #@test
 	run_fails_missing_proton_dir "$protonrun_exec" --show
 }

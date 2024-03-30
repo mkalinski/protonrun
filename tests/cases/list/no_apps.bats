@@ -6,7 +6,7 @@ setup() {
 	EOF
 }
 
-@test '--list outputs nothing when there are no apps' {
+option_list_outputs_nothing_when_there_are_no_apps() { #@test
 	run "$protonrun_exec" --list
 	[[ $status -eq 0 ]]
 	[[ -z $output ]]
