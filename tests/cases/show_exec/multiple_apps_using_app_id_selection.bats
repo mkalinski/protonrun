@@ -1,10 +1,10 @@
-load ../../constants/app_1.bash
-load ../../constants/app_2.bash
-load ../../fixtures/protonrun_exec.bash
-load ../../fixtures/assert_env_printout
-load ../../fixtures/mock_protonrun_steam_apps.bash
-
 setup() {
+	load ../../constants/app_1.bash || return
+	load ../../constants/app_2.bash || return
+	load ../../fixtures/protonrun_exec.bash || return
+	load ../../fixtures/assert_env_printout || return
+	load ../../fixtures/mock_protonrun_steam_apps.bash || return
+
 	# App definitions in reverse order, to show sorting.
 	mock_protonrun_steam_apps <<-EOF
 		$app_2_mock_protonrun_steam_apps_line

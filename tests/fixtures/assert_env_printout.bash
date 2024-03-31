@@ -1,7 +1,8 @@
+load ../../fixtures/mock_protonrun_steam_root.bash || exit
+
 # Usage: assert_env_printout "$app_id" "$proton_ver" <<< "$printout"
 assert_env_printout() {
-	load ../../fixtures/mock_protonrun_steam_root.bash
-	mock_protonrun_steam_root
+	mock_protonrun_steam_root || return
 
 	declare -r app_id="$1"
 	declare -r proton_ver="$2"

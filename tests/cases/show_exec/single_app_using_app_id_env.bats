@@ -1,9 +1,9 @@
-load ../../constants/app_1.bash
-load ../../fixtures/protonrun_exec.bash
-load ../../fixtures/assert_env_printout.bash
-load ../../fixtures/mock_protonrun_steam_apps.bash
-
 setup() {
+	load ../../constants/app_1.bash || return
+	load ../../fixtures/protonrun_exec.bash || return
+	load ../../fixtures/assert_env_printout.bash || return
+	load ../../fixtures/mock_protonrun_steam_apps.bash || return
+
 	mock_protonrun_steam_apps <<-EOF
 		$app_1_mock_protonrun_steam_apps_line
 	EOF

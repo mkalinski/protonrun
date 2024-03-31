@@ -1,7 +1,7 @@
-load ../../fixtures/protonrun_exec.bash
-load ../../fixtures/mock_protonrun_steam_root.bash
-
 setup() {
+	load ../../fixtures/protonrun_exec.bash || return
+	load ../../fixtures/mock_protonrun_steam_root.bash || return
+
 	mock_protonrun_steam_root
 }
 

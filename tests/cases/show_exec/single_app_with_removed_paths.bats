@@ -1,9 +1,9 @@
-load ../../constants/app_1.bash
-load ../../fixtures/error_msg_prefix.bash
-load ../../fixtures/protonrun_exec.bash
-load ../../fixtures/mock_protonrun_steam_apps.bash
-
 setup() {
+	load ../../constants/app_1.bash || return
+	load ../../fixtures/error_msg_prefix.bash || return
+	load ../../fixtures/protonrun_exec.bash || return
+	load ../../fixtures/mock_protonrun_steam_apps.bash || return
+
 	mock_protonrun_steam_apps <<-EOF
 		$app_1_mock_protonrun_steam_apps_line
 	EOF
@@ -12,6 +12,7 @@ setup() {
 }
 
 run_fails_missing_app_dir() {
+	[[ -d $PROTONRUN_STEAM_ROOT ]] || return
 	declare -r removed="$PROTONRUN_STEAM_ROOT/steamapps/compatdata/$app_1_id"
 	rm -r "$removed"
 
@@ -22,6 +23,7 @@ run_fails_missing_app_dir() {
 }
 
 run_fails_missing_version_file() {
+	[[ -d $PROTONRUN_STEAM_ROOT ]] || return
 	declare -r removed="$PROTONRUN_STEAM_ROOT/steamapps/compatdata/$app_1_id/version"
 	rm "$removed"
 
@@ -33,6 +35,7 @@ run_fails_missing_version_file() {
 }
 
 run_fails_missing_prefix_dir() {
+	[[ -d $PROTONRUN_STEAM_ROOT ]] || return
 	declare -r removed="$PROTONRUN_STEAM_ROOT/steamapps/compatdata/$app_1_id/pfx"
 	rm -r "$removed"
 
@@ -43,6 +46,7 @@ run_fails_missing_prefix_dir() {
 }
 
 run_fails_missing_proton_dir() {
+	[[ -d $PROTONRUN_STEAM_ROOT ]] || return
 	declare -r removed="$PROTONRUN_STEAM_ROOT/steamapps/common/Proton $app_1_proton_version"
 	rm -r "$removed"
 

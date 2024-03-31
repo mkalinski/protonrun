@@ -1,11 +1,12 @@
+load ../../fixtures/mock_protonrun_steam_root.bash || exit
+
 # Create a mock of the steam directory, for the purposes of testing protonrun.
 # Input:
 #   APP_ID_1 PROTON_VERSION_1 APP_NAME_1
 #   APP_ID_2 PROTON_VERSION_2 APP_NAME_2
 #   ...
 mock_protonrun_steam_apps() {
-	load ../../fixtures/mock_protonrun_steam_root.bash
-	mock_protonrun_steam_root
+	mock_protonrun_steam_root || return
 
 	declare -r apps_dir="$PROTONRUN_STEAM_ROOT/steamapps"
 	declare -r pfxs_dir="$apps_dir/compatdata"
