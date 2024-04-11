@@ -1,4 +1,7 @@
 setup() {
+	load ../../bats/support/load.bash || return
+	load ../../bats/assert/load.bash || return
+
 	load ../../constants/app_1.bash || return
 	load ../../fixtures/error_msg_prefix.bash || return
 	load ../../fixtures/protonrun_exec.bash || return
@@ -18,8 +21,8 @@ run_fails_missing_app_dir() {
 
 	run "$@"
 
-	[[ $status -eq 1 ]]
-	[[ $output == "$error_msg_prefix $removed is not a directory" ]]
+	assert_failure
+	assert_output "$error_msg_prefix $removed is not a directory"
 }
 
 run_fails_missing_version_file() {
@@ -29,9 +32,9 @@ run_fails_missing_version_file() {
 
 	run "$@"
 
-	[[ $status -eq 1 ]]
+	assert_failure
 	# The first line could be a bash built-in error message.
-	[[ ${lines[-1]} == "$error_msg_prefix Could not read proton version from: $removed" ]]
+	assert_line -n -1 "$error_msg_prefix Could not read proton version from: $removed"
 }
 
 run_fails_missing_prefix_dir() {
@@ -41,8 +44,8 @@ run_fails_missing_prefix_dir() {
 
 	run "$@"
 
-	[[ $status -eq 1 ]]
-	[[ $output == "$error_msg_prefix $removed is not a directory" ]]
+	assert_failure
+	assert_output "$error_msg_prefix $removed is not a directory"
 }
 
 run_fails_missing_proton_dir() {
@@ -52,8 +55,8 @@ run_fails_missing_proton_dir() {
 
 	run "$@"
 
-	[[ $status -eq 1 ]]
-	[[ $output == "$error_msg_prefix $removed/dist is not a directory" ]]
+	assert_failure
+	assert_output "$error_msg_prefix $removed/dist is not a directory"
 }
 
 exec_fails_without_running_when_app_dir_is_missing() { #@test
