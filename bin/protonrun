@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright (C) 2019,2020  Michał Kaliński
+# Copyright (C) 2019,2020,2024  Michał Kaliński
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,16 +16,16 @@
 
 declare PROTONRUN_STEAM_ROOT PROTONRUN_APP_ID
 : ${PROTONRUN_STEAM_ROOT:=$HOME/.local/share/Steam}
-declare -r ZERO_ARG="$0"
-declare -r STEAMAPPS_DIR="$PROTONRUN_STEAM_ROOT/steamapps"
-declare -r COMPATDATA_DIR="$STEAMAPPS_DIR/compatdata"
+
+declare -r steamapps_dir="$PROTONRUN_STEAM_ROOT/steamapps"
+declare -r compatdata_dir="$steamapps_dir/compatdata"
 
 usage() {
 	echo 'Usage:'
-	echo "  $ZERO_ARG [-s|--show] COMMAND [ARGUMENT...]"
-	echo "  $ZERO_ARG -s|--show"
-	echo "  $ZERO_ARG -l|--list"
-	echo "  $ZERO_ARG -h|--help"
+	echo "  $0 [-s|--show] COMMAND [ARGUMENT...]"
+	echo "  $0 -s|--show"
+	echo "  $0 -l|--list"
+	echo "  $0 -h|--help"
 	echo
 	echo 'Export WINE environment variables for a Steam Proton prefix'
 	echo 'and run COMMAND [ARGUMENT...]'
@@ -46,22 +46,33 @@ usage() {
 }
 
 echo_err() {
-	echo "$ZERO_ARG:" ERROR: "$@" >&2
+	echo "$0:" ERROR: "$@" >&2
+}
+
+die() {
+	echo_err "$1"
+	exit "${2:-1}"
+}
+
+die_on_bad_args() {
+	echo_err "$1"
+	usage
+	exit 2
 }
 
 ensure_dir() {
 	declare -r checked_dir="$1"
 
 	if [[ ! -d $checked_dir ]]; then
-		echo_err "$checked_dir is not a directory"
-		exit 1
+		die "$checked_dir is not a directory"
 	fi
 }
 
 list_apps() {
+	ensure_dir "$compatdata_dir"
 	declare app field_1 field_2
 
-	for app in "$COMPATDATA_DIR"/*/; do
+	for app in "$compatdata_dir"/*/; do
 		if [[ ! -d $app ]]; then
 			continue
 		fi
@@ -74,70 +85,72 @@ list_apps() {
 				app+=" $field_2"
 				break
 			fi
-		done < "$STEAMAPPS_DIR/appmanifest_$app.acf"
+		done < "$steamapps_dir/appmanifest_$app.acf"
 
 		echo "$app"
 	done
 }
 
 sorted_apps() {
+	declare list
+	list="$(list_apps)" || return
+
 	if command -v sort > /dev/null; then
-		echo "$(list_apps | sort -k 2)"
-	else
-		echo "$(list_apps)"
+		sort -k 2 <<< "$list"
 	fi
 }
 
 select_protonrun_app_id() {
-	declare line selected_app
-	declare proton_apps=()
-
-	while read -r line; do
-		proton_apps+=("$line")
-	done <<< "$(sorted_apps)"
+	declare line selected_app proton_apps
+	readarray -t proton_apps <<< "$(sorted_apps)" || return
 
 	select selected_app in "${proton_apps[@]}"; do
 		if [[ -n $selected_app ]]; then
 			PROTONRUN_APP_ID="${selected_app%% *}"
-			break
+			return
 		fi
 	done
+
+	# If app not selected, then abort.
+	return 1
 }
 
-read_version_file() {
+get_proton_version() {
+	declare -r proton_dir="$1"
+	declare -r version_path="$proton_dir/version"
+
 	declare line
-	read line
+	read -r line < "$version_path"
+
+	if [[ -z $line ]]; then
+		die "Could not read proton version from: $version_path"
+	fi
+
 	echo "${line%-*}"
 }
 
 
 if [[ $# -eq 0 ]]; then
-	echo_err 'An argument is required'
-	usage
-	exit 2
+	die_on_bad_args 'An argument is required'
 fi
 
-ensure_dir "$COMPATDATA_DIR"
-
-declare -i show_envs=0
+declare show_envs
 
 case "$1" in
 	(-h|--help)
 		usage
-		exit 0
+		exit
 		;;
 	(-l|--list)
 		sorted_apps
-		exit 0
+		exit
 		;;
 	(-s|--show)
 		show_envs=1
 		shift 1
 		;;
 	(-*)
-		echo_err "Unknown option: $1"
-		usage
-		exit 2
+		die_on_bad_args "Unknown option: $1"
 		;;
 esac
 
@@ -153,25 +166,21 @@ fi
 declare -r app_proton_dir="$PROTONRUN_STEAM_ROOT/steamapps/compatdata/$PROTONRUN_APP_ID"
 ensure_dir "$app_proton_dir"
 
-declare -r proton_version_file="$app_proton_dir/version"
 declare proton_version
+proton_version="$(get_proton_version "$app_proton_dir")" || exit
 
-if ! proton_version="$(read_version_file < "$proton_version_file")"; then
-	echo_err "Could not read proton version from: $proton_version_file"
-	exit 1
-fi
-
-declare -x PROTON="$STEAMAPPS_DIR/common/Proton $proton_version"
+declare -x PROTON="$steamapps_dir/common/Proton $proton_version"
 declare -r proton_dist="$PROTON/dist"
 ensure_dir "$proton_dist"
 
 declare -x WINEPREFIX="$app_proton_dir/pfx"
+ensure_dir "$WINEPREFIX"
 declare -x WINESERVER="$proton_dist/bin/wineserver"
 declare -x WINELOADER="$proton_dist/bin/wine"
 declare -x WINEDLLPATH="$proton_dist/lib/wine:$proton_dist/lib64/wine"
 declare -x PATH="$proton_dist/bin:$PATH"
 
-if (( show_envs )); then
+if [[ -n $show_envs ]]; then
 	echo "WINEPREFIX=$WINEPREFIX"
 	echo "WINESERVER=$WINESERVER"
 	echo "WINELOADER=$WINELOADER"

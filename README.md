@@ -42,8 +42,9 @@ $ protonrun --help
 
 ## Requirements
 
-- Running: `bash>=5.0` (not tested on earlier verions)
-- Testing: `bats-core>=1.1`, `expect>=5.45`
+`protonrun` should run on any system with bash and standard Unix utils.
+
+For tests, git submodules need to be cloned with the repo.
 
 ## Installation
 
