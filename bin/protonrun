@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Copyright (C) 2019,2020  Michał Kaliński
+# Copyright (C) 2019,2020,2024  Michał Kaliński
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,16 +17,15 @@
 declare PROTONRUN_STEAM_ROOT PROTONRUN_APP_ID
 : ${PROTONRUN_STEAM_ROOT:=$HOME/.local/share/Steam}
 
-declare -r command_arg="$0"
 declare -r steamapps_dir="$PROTONRUN_STEAM_ROOT/steamapps"
 declare -r compatdata_dir="$steamapps_dir/compatdata"
 
 usage() {
 	echo 'Usage:'
-	echo "  $command_arg [-s|--show] COMMAND [ARGUMENT...]"
-	echo "  $command_arg -s|--show"
-	echo "  $command_arg -l|--list"
-	echo "  $command_arg -h|--help"
+	echo "  $0 [-s|--show] COMMAND [ARGUMENT...]"
+	echo "  $0 -s|--show"
+	echo "  $0 -l|--list"
+	echo "  $0 -h|--help"
 	echo
 	echo 'Export WINE environment variables for a Steam Proton prefix'
 	echo 'and run COMMAND [ARGUMENT...]'
@@ -47,7 +46,7 @@ usage() {
 }
 
 echo_err() {
-	echo "$command_arg:" ERROR: "$@" >&2
+	echo "$0:" ERROR: "$@" >&2
 }
 
 die() {
